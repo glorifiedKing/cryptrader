@@ -15,7 +15,7 @@ defineProps<{
     supportedSymbols: string[];
 }>();
 
-const { orders, userOrders, isOrdersLoading, handleOrderMatched } = useTrading();
+const { orders, userOrders, isOrdersLoading, handleOrderMatched, ordersPagination, userOrdersPagination } = useTrading();
 const selectedSymbol = ref<string>('BTC');
 
 
@@ -30,9 +30,13 @@ async function loadData() {
   isOrdersLoading.value = true;
   try {
     
-    orders.value = await tradingApi.fetchOrders(selectedSymbol.value);
-    const allOrders = await tradingApi.fetchOrders();
-    userOrders.value = allOrders;
+    const ordersResponse = await tradingApi.fetchOrders(selectedSymbol.value);
+    orders.value = ordersResponse.data;
+    ordersPagination.value = ordersResponse;
+
+    const userOrdersResponse = await tradingApi.fetchOrders();
+    userOrders.value = userOrdersResponse.data;
+    userOrdersPagination.value = userOrdersResponse;
   } catch (error) {
     console.error('Failed to load trading data:', error);
   } finally {
@@ -48,7 +52,46 @@ async function handleOrderCreated() {
 
 async function handleSymbolChange(symbol: string) {
   selectedSymbol.value = symbol;
-  orders.value = await tradingApi.fetchOrders(symbol);
+  const response = await tradingApi.fetchOrders(symbol);
+  orders.value = response.data;
+  ordersPagination.value = response;
+}
+
+async function handleOrderBookPageChange(page: number) {
+    const response = await tradingApi.fetchOrders(selectedSymbol.value, page);
+    orders.value = response.data;
+    ordersPagination.value = response;
+}
+
+const historyFilters = ref({
+    symbol: 'all',
+    side: 'all',
+    status: 'all'
+});
+
+async function handleOrderHistoryPageChange(page: number) {
+    const response = await tradingApi.fetchOrders(
+        historyFilters.value.symbol,
+        page,
+        5,
+        historyFilters.value.side,
+        historyFilters.value.status
+    );
+    userOrders.value = response.data;
+    userOrdersPagination.value = response;
+}
+
+async function handleOrderHistoryFilterChange(filters: { symbol: string; side: string; status: string }) {
+    historyFilters.value = filters;
+    const response = await tradingApi.fetchOrders(
+        filters.symbol,
+        1,
+        5,
+        filters.side,
+        filters.status
+    );
+    userOrders.value = response.data;
+    userOrdersPagination.value = response;
 }
 </script>
 
@@ -76,6 +119,8 @@ async function handleSymbolChange(symbol: string) {
             :orders="orders"
             :selected-symbol="selectedSymbol"
             :supported-symbols="supportedSymbols"
+            :pagination="ordersPagination"
+            @page-change="handleOrderBookPageChange"
           />
         </div>
 
@@ -84,7 +129,10 @@ async function handleSymbolChange(symbol: string) {
           <OrderHistory
             :orders="userOrders"
             :supported-symbols="supportedSymbols"
+            :pagination="userOrdersPagination"
             @order-cancelled="handleOrderCreated"
+            @page-change="handleOrderHistoryPageChange"
+            @filter-change="handleOrderHistoryFilterChange"
           />
         </div>
       </div>

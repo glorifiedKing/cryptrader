@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import type { Order } from '@/types/trading';
+import type { Order, PaginatedResponse } from '@/types/trading';
 import { computed } from 'vue';
 
 interface Props {
   orders: Order[];
   selectedSymbol: string;
+  pagination?: PaginatedResponse<Order> | null;
 }
 
 const props = defineProps<Props>();
+const emit = defineEmits<{
+  'page-change': [page: number];
+}>();
 
 const buyOrders = computed(() =>
   props.orders
@@ -89,6 +93,27 @@ const sellOrders = computed(() =>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Pagination -->
+    <div v-if="pagination && pagination.last_page > 1" class="flex justify-center gap-2 mt-6 text-sm">
+      <button
+        @click="$emit('page-change', pagination.current_page - 1)"
+        :disabled="pagination.current_page === 1"
+        class="px-3 py-1 bg-slate-700 text-white rounded hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        Previous
+      </button>
+      <span class="text-slate-400 self-center">
+        Page {{ pagination.current_page }} of {{ pagination.last_page }}
+      </span>
+      <button
+        @click="$emit('page-change', pagination.current_page + 1)"
+        :disabled="pagination.current_page === pagination.last_page"
+        class="px-3 py-1 bg-slate-700 text-white rounded hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+      >
+        Next
+      </button>
     </div>
   </div>
 </template>

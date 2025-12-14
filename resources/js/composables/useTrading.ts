@@ -1,9 +1,11 @@
 import { ref, computed } from 'vue';
-import type { Asset, Order, Profile, Trade } from '@/types/trading';
+import type { Asset, Order, Profile, Trade, PaginatedResponse } from '@/types/trading';
 
 const profile = ref<Profile | null>(null);
 const orders = ref<Order[]>([]);
 const userOrders = ref<Order[]>([]);
+const ordersPagination = ref<PaginatedResponse<Order> | null>(null);
+const userOrdersPagination = ref<PaginatedResponse<Order> | null>(null);
 const isProfileLoading = ref(false);
 const isOrdersLoading = ref(false);
 
@@ -94,5 +96,7 @@ export function useTrading() {
         buyOrders,
         sellOrders,
         handleOrderMatched,
+        ordersPagination,
+        userOrdersPagination,
     };
 }

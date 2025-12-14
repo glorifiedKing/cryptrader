@@ -2,6 +2,7 @@ import axios from 'axios';
 import type {
     CreateOrderPayload,
     Order,
+    PaginatedResponse,
     Profile,
 } from '@/types/trading';
 
@@ -13,10 +14,12 @@ export const tradingApi = {
         return response.data;
     },
 
-    async fetchOrders(symbol?: string): Promise<Order[]> {
-        const response = await axios.get('/api/orders', {
-            params: symbol ? { symbol } : {},
-        });
+    async fetchOrders(symbol?: string, page = 1, perPage = 5, side?: string, status?: string): Promise<PaginatedResponse<Order>> {
+        const params: any = { page, per_page: perPage };
+        if (symbol && symbol !== 'all') params.symbol = symbol;
+        if (side && side !== 'all') params.side = side;
+        if (status && status !== 'all') params.status = status;
+        const response = await axios.get('/api/orders', { params });
         return response.data;
     },
 

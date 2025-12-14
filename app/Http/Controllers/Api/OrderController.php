@@ -43,7 +43,9 @@ class OrderController extends Controller
             }
         }
 
-        $orders = $query->get()->map(function ($order) {
+        $perPage = $request->input('per_page', 20);
+
+        $orders = $query->paginate($perPage)->through(function ($order) {
             return [
                 'id' => $order->id,
                 'user_id' => $order->user_id,
