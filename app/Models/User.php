@@ -22,6 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'balance',
     ];
 
     /**
@@ -47,6 +48,27 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'balance' => 'decimal:8',
         ];
+    }
+
+    public function assets()
+    {
+        return $this->hasMany(Asset::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function buyTrades()
+    {
+        return $this->hasMany(Trade::class, 'buyer_id');
+    }
+
+    public function sellTrades()
+    {
+        return $this->hasMany(Trade::class, 'seller_id');
     }
 }
